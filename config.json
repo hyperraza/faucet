@@ -1,0 +1,11 @@
+{
+  "network": {
+    "name": "test",
+    "wss": "ws://127.0.0.1:9944",
+    "addressType": 42,
+    "decimals": 12,
+    "fundAmount": 100,
+    "limitPerHour": 2,
+    "minWaitTimeMinutes": 1
+  }
+}
