@@ -4,6 +4,13 @@ This simple API allows users to be funded with native token of the connected net
 The secret of an account with funds is passed as environment variable. When a user requests funds,
 a transaction from the balances pallet is made to the user's address.
 
+## Rate limiting
+
+An address can only be funded X times every 60 minutes, where it must also wait for Y minutes between
+each funding. Both values can be configured in `config.json` by setting `limitPerHour` and `minWaitTimeMinutes`
+respectively.
+Alternatively, the requests per IP can be configured by `RATE_LIMIT_MAX_REQUESTS` and `RATE_LIMIT_WINDOW_MINUTES`.
+
 ## Error handling
 
 If an error arises during the transfer (like a lack of funds from the sender's account), a message

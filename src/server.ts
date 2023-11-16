@@ -3,7 +3,7 @@ import { Config } from "./config.js";
 import ExpressConfig from "./express/express.config.js";
 import { ApiManager } from "./chain_service/api.js";
 import Faucet from "./chain_service/faucet.js";
-import { AddressError } from "./chain_service/faucetErrors.js";
+import { AddressError, RateError } from "./chain_service/faucetErrors.js";
 import { SlackNotifier } from "./slack_service/slack.js";
 
 dotenv.config();
@@ -29,7 +29,16 @@ app.get("/fund", async (req, res) => {
     await faucet.send(String(to));
   } catch (error) {
     if (error instanceof AddressError) {
-      return res.status(400).send(error.message);
+      return res
+        .status(400)
+        .send(`Error sending to address ${error.address} ${error.message}`);
+    }
+    if (error instanceof RateError) {
+      return res
+        .status(400)
+        .send(
+          `Address has reached the limit, plase try again in ${error.remaining}`,
+        );
     }
     return res.status(500).send("Server Error. Please try again later");
   }

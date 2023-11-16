@@ -3,7 +3,12 @@ import { checkAddress, cryptoWaitReady } from "@polkadot/util-crypto";
 import BN from "bn.js";
 import { ApiManager, API } from "./api.js";
 import { Config } from "../config.js";
-import { AddressError, DispatchError, NoFundsError } from "./faucetErrors.js";
+import {
+  AddressError,
+  DispatchError,
+  NoFundsError,
+  RateError,
+} from "./faucetErrors.js";
 import { SlackNotifier } from "../slack_service/slack.js";
 
 const customTypes = {
@@ -80,8 +85,11 @@ export default class Faucet {
         );
       }
       // Handle limits
-      if (!this.isAddressAllowed(address)) {
-        return reject(new AddressError(`Address has reached limit`, address));
+      let remainingTime = this.isAddressAllowed(address);
+      if (remainingTime) {
+        return reject(
+          new RateError(`Address has reached limit`, remainingTime),
+        );
       }
       this.addFundEvent(address);
 
@@ -136,26 +144,34 @@ export default class Faucet {
     this.fundMap.get(address)!.push(now);
   }
 
-  private isAddressAllowed(address: string): boolean {
+  // either return undefined if address is allowed, or a number
+  // representing the amount of seconds the address needs to wait
+  // for being refunded
+  private isAddressAllowed(address: string): number | undefined {
     const now = Date.now();
-    if (!this.fundMap.has(address)) return true;
+    if (!this.fundMap.has(address)) return undefined;
 
     // filter the last hour fundings for address
     const recentFundings = this.fundMap
       .get(address)!
       .filter((timestamp) => now - timestamp <= 60 * 60 * 1000);
 
+    // check amount of fundings per hour
+    if (recentFundings.length >= 2) {
+      let lastFund = recentFundings[0];
+      return (60 * 60 * 1000 - (now - lastFund)) / 1000;
+    }
+
     // check the waiting time
     let timeSinceLastFund = recentFundings[recentFundings.length - 1];
     if (now - timeSinceLastFund < this.config.getWaitingTime() * 60 * 1000)
-      return false;
+      return (
+        (this.config.getWaitingTime() * 60 * 1000 - (now - timeSinceLastFund)) /
+        1000
+      );
 
     this.fundMap.set(address, recentFundings); // Update the map with only recent occurrences
-
-    if (recentFundings.length >= 2) {
-      return false;
-    }
-    return true;
+    return undefined;
   }
 
   private async handleDispatchError(dispatchError: any) {

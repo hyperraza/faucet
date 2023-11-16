@@ -117,10 +117,17 @@ export class DispatchError extends FaucetError {
 }
 
 export class AddressError extends Error {
-  constructor(
-    message: string,
-    private account: string,
-  ) {
+  address: string;
+  constructor(message: string, address: string) {
     super(message);
+    this.address = address;
+  }
+}
+
+export class RateError extends Error {
+  remaining: number;
+  constructor(message: string, remaining: number) {
+    super(message);
+    this.remaining = remaining;
   }
 }
