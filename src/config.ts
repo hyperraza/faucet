@@ -49,7 +49,6 @@ export class Config {
   }
 
   public getSecret(): string {
-    // We use the same secret for all networks
     return this.substrateAccountSecret;
   }
 
