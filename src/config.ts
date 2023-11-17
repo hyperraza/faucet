@@ -10,7 +10,7 @@ export interface RateLimitConfig {
 export interface NetworkConfig {
   name: string;
   wss: string;
-  addressType: number;
+  addressPrefix: number;
   decimals: number;
   fundAmount: number;
   limitPerHour: number;
@@ -66,7 +66,7 @@ export class Config {
   private validateNetworkSecret() {
     if (!this.getSecret()) {
       throw new Error(
-        `URI for network: ${this.config.network.name} is undefined`,
+        `URI for network '${this.config.network.name}' is undefined`,
       );
     }
   }
@@ -74,13 +74,13 @@ export class Config {
     return this.config.network;
   }
 
-  public getAddressType(): number {
-    return this.config.network.addressType;
+  public getaddressPrefix(): number {
+    return this.config.network.addressPrefix;
   }
 
   public getSenderPk(): string {
     const keyring = new Keyring({ type: "sr25519" });
-    keyring.setSS58Format(this.getAddressType());
+    keyring.setSS58Format(this.getaddressPrefix());
 
     let sender = keyring.addFromUri(this.getSecret());
     return sender.address;
