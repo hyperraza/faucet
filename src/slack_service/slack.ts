@@ -39,9 +39,6 @@ export class SlackNotifier {
   async sendMessage(message: SlackBlockkitMessage): Promise<void> {
     const payload = JSON.stringify(message);
 
-    console.log(payload);
-    return;
-
     const response = await fetch(this.webhookUrl, {
       method: "POST",
       headers: {

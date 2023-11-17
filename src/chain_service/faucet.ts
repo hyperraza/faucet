@@ -75,11 +75,11 @@ export default class Faucet {
 
       // Reject early if the address has an incorrect format
       // or limit has been hit
-      const check = checkAddress(address, this.config.getAddressType());
+      const check = checkAddress(address, this.config.getaddressPrefix());
       if (!check[0]) {
         return reject(
           new AddressError(
-            `Invalid address! Address type ${this.config.getAddressType()}, visit https://github.com/paritytech/substrate/blob/e232d78dd5bafa3bbaae9ac9db08f99e238392db/primitives/core/src/crypto.rs#L444 for reference`,
+            `Invalid address! The expected SS58 address prefix used for encoding ${this.config.getaddressPrefix()}, visit https://github.com/paritytech/substrate/blob/e232d78dd5bafa3bbaae9ac9db08f99e238392db/primitives/core/src/crypto.rs#L444 for reference`,
             address,
           ),
         );
@@ -88,14 +88,14 @@ export default class Faucet {
       let remainingTime = this.isAddressAllowed(address);
       if (remainingTime) {
         return reject(
-          new RateError(`Address has reached limit`, remainingTime),
+          new RateError(`Address ${address} has reached limit`, remainingTime),
         );
       }
       this.addFundEvent(address);
 
       // Derive sender object from secret
       const keyring = new Keyring({ type: "sr25519" });
-      keyring.setSS58Format(this.config.getAddressType());
+      keyring.setSS58Format(this.config.getaddressPrefix());
 
       let sender;
       try {
@@ -111,7 +111,7 @@ export default class Faucet {
       const tx = await api.api.tx.balances
         .transferKeepAlive(address, amount)
         .signAndSend(sender, { nonce }, (submissionResult: any) =>
-          this.onSubmitionResultHandler(submissionResult, resolve, reject),
+          this.onSubmissionResultHandler(submissionResult, resolve, reject),
         )
         .catch((error: any) => {
           this.checkLackOfFunds(error);
@@ -120,7 +120,7 @@ export default class Faucet {
     });
   }
 
-  private async onSubmitionResultHandler(
+  private async onSubmissionResultHandler(
     submissionResult: any,
     resolve: any,
     reject: any,
@@ -194,7 +194,7 @@ export default class Faucet {
       // Otherwise we just send a generic dispatch error message
       // to slack
       let error = new DispatchError(
-        "A dispatch error ocurred when funding",
+        "A dispatch error occurred when funding",
         method,
         section,
         this.config,
@@ -209,7 +209,7 @@ export default class Faucet {
       );
 
       let error = new DispatchError(
-        "An unknown dispatch error ocurred when funding",
+        "An unknown dispatch error occurred when funding",
         "Unknown",
         "Unknown",
         this.config,
@@ -228,7 +228,7 @@ export default class Faucet {
 
   private async registerLackOfFundsEvent() {
     let error = new NoFundsError(
-      "The account does not have enough funds",
+      "The faucet account does not have enough funds",
       this.config,
     );
     this.slackNotifier.pushError(error);
