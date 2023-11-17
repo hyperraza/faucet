@@ -31,16 +31,16 @@ app.get("/fund", async (req, res) => {
     if (error instanceof AddressError) {
       return res
         .status(400)
-        .send(`Error sending to address ${error.address} ${error.message}`);
-    }
-    if (error instanceof RateError) {
+        .send(`Error sending to address ${error.address}: <br /> ${error.message}`);
+    } else if (error instanceof RateError) {
       return res
         .status(400)
         .send(
           `Address has reached the limit, plase try again in ${error.remaining}`,
         );
+    } else {
+        return res.status(500).send("Server Error. Please try again later");
     }
-    return res.status(500).send("Server Error. Please try again later");
   }
 
   return res.sendStatus(200);

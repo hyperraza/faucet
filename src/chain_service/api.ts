@@ -24,7 +24,7 @@ class ApiManager {
     const chainProperties = await api.registry.getChainProperties();
     const ss58Format = Number(
       chainProperties?.get("ss58Format").toString() ||
-        this.config.getAddressType(),
+        this.config.getaddressPrefix(),
     );
 
     return { api, ss58Format };

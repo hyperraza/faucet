@@ -1,8 +1,8 @@
 {
   "network": {
-    "name": "test",
-    "wss": "ws://127.0.0.1:9944",
-    "addressType": 42,
+    "name": "foucoco",
+    "wss": "wss://rpc-foucoco.pendulumchain.tech",
+    "addressPrefix": 57,
     "decimals": 12,
     "fundAmount": 100,
     "limitPerHour": 2,
