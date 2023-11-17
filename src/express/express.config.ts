@@ -30,6 +30,25 @@ const ExpressConfig = (config: RateLimitConfig): Application => {
   // enable CORS - Cross Origin Resource Sharing
   app.use(cors());
 
+  // make query params insensitive to uppercase
+  app.use((req, res, next) => {
+    req.query = Object.keys(req.query).reduce(
+      (newQuery, key) => {
+        const value = req.query[key];
+
+        if (typeof value === "string") {
+          newQuery[key.toLowerCase()] = value;
+        } else if (Array.isArray(value)) {
+          newQuery[key.toLowerCase()] = value.join(",");
+        }
+
+        return newQuery;
+      },
+      {} as { [key: string]: string },
+    );
+    next();
+  });
+
   return app;
 };
 

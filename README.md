@@ -4,6 +4,9 @@ This simple API allows users to be funded with native token of the connected net
 The secret of an account with funds is passed as environment variable. When a user requests funds,
 a transaction from the balances pallet is made to the user's address.
 
+In order to use the faucet, make a GET request to `/fund?to={your-public-address}`, which will trigger
+the transaction and respond to the user if the funding was successful.
+
 ## Rate limiting
 
 An address can only be funded X times every 60 minutes, where it must also wait for Y minutes between
