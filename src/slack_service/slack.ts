@@ -31,7 +31,11 @@ export class SlackNotifier {
 
     //8 hour waiting time
     if (timeSinceLastHandled >= 480 * 60 * 1000) {
-      this.sendMessage(error.serializeForSlack());
+      try {
+          await this.sendMessage(error.serializeForSlack());
+      } catch (error) {
+        console.log("Failed to send error to slack", error);
+      }
       this.errorTimestamps.set(errorKey, now);
     }
   }
