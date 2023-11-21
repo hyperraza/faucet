@@ -15,6 +15,7 @@ export interface NetworkConfig {
   fundAmount: number;
   limitPerHour: number;
   minWaitTimeMinutes: number;
+  slackWaitingTimeMinutes: number;
 }
 
 export interface ServiceConfig {
@@ -94,11 +95,20 @@ export class Config {
     return this.config.network.fundAmount;
   }
 
-  public getLimit(): number {
+  public getLimitPerHour(): number {
     return this.config.network.limitPerHour;
   }
 
-  public getWaitingTime(): number {
+  public getWaitingTimeMinutes(): number {
     return this.config.network.minWaitTimeMinutes;
+  }
+
+  public getSlackWaitingTimeMinutes(): number {
+    // we default to 8 hours (480 minutes)
+    if (!this.config.network.slackWaitingTimeMinutes) {
+      return 480;
+    } else {
+      return this.config.network.slackWaitingTimeMinutes;
+    }
   }
 }

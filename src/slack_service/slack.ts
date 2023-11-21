@@ -1,6 +1,6 @@
 import { KnownBlock, Block } from "@slack/types";
 import { FaucetError } from "../chain_service/faucetErrors.js";
-
+import { Config } from "../config.js";
 export type SlackBlock = KnownBlock | Block;
 
 export interface SlackBlockkitMessage {
@@ -10,8 +10,10 @@ export interface SlackBlockkitMessage {
 export class SlackNotifier {
   private webhookUrl: string;
   private errorTimestamps: Map<string, number>;
+  private config: Config;
+  constructor(config: Config) {
+    this.config = config;
 
-  constructor() {
     if (process.env.SLACK_WEB_HOOK_TOKEN) {
       this.webhookUrl = `https://hooks.slack.com/services/${process.env.SLACK_WEB_HOOK_TOKEN}`;
     } else {
@@ -30,9 +32,12 @@ export class SlackNotifier {
     const timeSinceLastHandled = now - lastHandled;
 
     //8 hour waiting time
-    if (timeSinceLastHandled >= 480 * 60 * 1000) {
+    if (
+      timeSinceLastHandled >=
+      this.config.getSlackWaitingTimeMinutes() * 60 * 1000
+    ) {
       try {
-          await this.sendMessage(error.serializeForSlack());
+        await this.sendMessage(error.serializeForSlack());
       } catch (error) {
         console.log("Failed to send error to slack", error);
       }

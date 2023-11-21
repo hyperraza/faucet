@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Load base config and initializations
 const config = new Config("config.json");
 const apiManager = new ApiManager(config);
-const slackNotifier = new SlackNotifier();
+const slackNotifier = new SlackNotifier(config);
 const faucet = new Faucet(config, slackNotifier, apiManager);
 await faucet.init();
 const app = ExpressConfig(config.getRateLimitConfig());
@@ -31,7 +31,9 @@ app.get("/fund", async (req, res) => {
     if (error instanceof AddressError) {
       return res
         .status(400)
-        .send(`Error sending to address ${error.address}: <br /> ${error.message}`);
+        .send(
+          `Error sending to address ${error.address}: <br /> ${error.message}`,
+        );
     } else if (error instanceof RateError) {
       return res
         .status(400)
@@ -39,7 +41,7 @@ app.get("/fund", async (req, res) => {
           `Address has reached the limit, plase try again in ${error.remaining}`,
         );
     } else {
-        return res.status(500).send("Server Error. Please try again later");
+      return res.status(500).send("Server Error. Please try again later");
     }
   }
 

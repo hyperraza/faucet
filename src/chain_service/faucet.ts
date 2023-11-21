@@ -80,6 +80,7 @@ export default class Faucet {
         )
         .catch((error: any) => {
           this.checkLackOfFunds(error);
+          this.removeLatestFundEvent(address);
           reject();
         });
     });
@@ -109,6 +110,10 @@ export default class Faucet {
     this.fundMap.get(address)!.push(now);
   }
 
+  private removeLatestFundEvent(address: string) {
+    this.fundMap.get(address)!.pop();
+  }
+
   // either return undefined if address is allowed, or a number
   // representing the amount of seconds the address needs to wait
   // for being refunded
@@ -122,19 +127,26 @@ export default class Faucet {
       .filter((timestamp) => now - timestamp <= 60 * 60 * 1000);
 
     // check amount of fundings per hour
-    if (recentFundings.length >= 2) {
+    if (recentFundings.length >= this.config.getLimitPerHour()) {
       let lastFund = recentFundings[0];
-      return (60 * 60 * 1000 - (now - lastFund)) / 1000;
+      let timePassedSinceLastFund = now - lastFund;
+      let remainingTimeNextFundMilisec =
+        60 * 60 * 1000 - timePassedSinceLastFund;
+      return remainingTimeNextFundMilisec / 1000;
     }
 
     // check the waiting time
     let timeSinceLastFund = recentFundings[recentFundings.length - 1];
-    if (now - timeSinceLastFund < this.config.getWaitingTime() * 60 * 1000)
-      return (
-        (this.config.getWaitingTime() * 60 * 1000 - (now - timeSinceLastFund)) /
-        1000
-      );
-
+    if (
+      now - timeSinceLastFund <
+      this.config.getWaitingTimeMinutes() * 60 * 1000
+    ) {
+      let timePassedSinceLastFund = now - timeSinceLastFund;
+      let remainingTimeNextFundMilisec =
+        this.config.getWaitingTimeMinutes() * 60 * 1000 -
+        timePassedSinceLastFund;
+      return remainingTimeNextFundMilisec / 1000;
+    }
     this.fundMap.set(address, recentFundings); // Update the map with only recent occurrences
     return undefined;
   }
