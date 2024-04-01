@@ -27,13 +27,13 @@ export default class Faucet {
     this.slackNotifier = slackNotifier;
     this.fundMap = new Map<string, number[]>();
   }
-
+  
+  // Populate api's in the apiManager
   async init() {
     await this.apiManager.getApi();
   }
 
   async send(address: string) {
-    let api = await this.apiManager.getApi();
     return new Promise<string>(async (resolve, reject) => {
       // Waiting for crypto library to be ready
       await cryptoWaitReady();
@@ -69,12 +69,12 @@ export default class Faucet {
         return reject(`Service Error: Invalid Mnemonic`);
       }
 
-      const nonce = await this.apiManager.executeApiCall(api => api.api.rpc.system.accountNextIndex(sender.publicKey));
+      const nonce = await this.apiManager.executeApiCall(async (api) => api.rpc.system.accountNextIndex(sender.publicKey));
 
       const padding = new BN(10).pow(new BN(this.config.getDecimals()));
       const amount = new BN(this.config.getFundAmount()).mul(padding);
-      const tx = await this.apiManager.executeApiCall(api =>
-        api.api.tx.balances
+      const tx = await this.apiManager.executeApiCall(async (api) =>
+        api.tx.balances
         .transferKeepAlive(address, amount)
         .signAndSend(sender, { nonce }, (submissionResult: any) =>
           this.onSubmissionResultHandler(submissionResult, resolve, reject),
@@ -153,9 +153,8 @@ export default class Faucet {
   }
 
   private async handleDispatchError(dispatchError: any) {
-    let api = await this.apiManager.getApi();
     if (dispatchError?.isModule) {
-      const decoded = await this.apiManager.executeApiCall(api => api.api.registry.findMetaError(dispatchError.asModule));
+      const decoded = await this.apiManager.executeApiCall(async (api) => api.registry.findMetaError(dispatchError.asModule));
       const { docs, name, section, method } = decoded;
 
       console.log(

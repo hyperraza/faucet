@@ -38,14 +38,14 @@ class ApiManager {
     console.log(`Connected to node ${network.wss}`);
   }
 
-  async getApi(): Promise<API> {
+  public async getApi(): Promise<API> {
     if (!this.apiInstanceDict["network"]) {
       await this.populateApis();
     }
     return this.apiInstanceDict["network"];
   }
 
-  public async executeApiCall(apiCall: (apiCall: any) => Promise<any>): Promise<any> {
+  public async executeApiCall(apiCall: (apiCall: ApiPromise) => Promise<any>): Promise<any> {
     let apiInstance = await this.getApi();
 
     try {
