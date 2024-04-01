@@ -33,18 +33,33 @@ class ApiManager {
   public async populateApis(): Promise<void> {
     const network: NetworkConfig = this.config.getNetwork();
 
-    // TODO add bogdan's fixes for disconect handling
-
     console.log(`Connecting to node ${network.wss}...`);
     this.apiInstanceDict["network"] = await this.connectApi(network.wss);
     console.log(`Connected to node ${network.wss}`);
   }
 
-  public async getApi(): Promise<API> {
+  async getApi(): Promise<API> {
     if (!this.apiInstanceDict["network"]) {
       await this.populateApis();
     }
     return this.apiInstanceDict["network"];
+  }
+
+  public async executeApiCall(apiCall: (apiCall: any) => Promise<any>): Promise<any> {
+    let apiInstance = await this.getApi();
+
+    try {
+        return await apiCall(apiInstance.api);
+    } catch (initialError) {
+        console.log(`Error encountered, attempting to refresh the api...`);
+        try {
+            apiInstance = await this.connectApi(this.config.getNetwork().wss); 
+            this.apiInstanceDict["network"] = apiInstance; 
+            return await apiCall(apiInstance.api);
+        } catch (retryError) {
+            throw retryError;
+        }
+    }
   }
 }
 

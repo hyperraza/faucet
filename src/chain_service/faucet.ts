@@ -69,15 +69,16 @@ export default class Faucet {
         return reject(`Service Error: Invalid Mnemonic`);
       }
 
-      const nonce = await api.api.rpc.system.accountNextIndex(sender.publicKey);
+      const nonce = await this.apiManager.executeApiCall(api => api.api.rpc.system.accountNextIndex(sender.publicKey));
 
       const padding = new BN(10).pow(new BN(this.config.getDecimals()));
       const amount = new BN(this.config.getFundAmount()).mul(padding);
-      const tx = await api.api.tx.balances
+      const tx = await this.apiManager.executeApiCall(api =>
+        api.api.tx.balances
         .transferKeepAlive(address, amount)
         .signAndSend(sender, { nonce }, (submissionResult: any) =>
           this.onSubmissionResultHandler(submissionResult, resolve, reject),
-        )
+        ))
         .catch((error: any) => {
           this.checkLackOfFunds(error);
           this.removeLatestFundEvent(address);
@@ -154,7 +155,7 @@ export default class Faucet {
   private async handleDispatchError(dispatchError: any) {
     let api = await this.apiManager.getApi();
     if (dispatchError?.isModule) {
-      const decoded = api.api.registry.findMetaError(dispatchError.asModule);
+      const decoded = await this.apiManager.executeApiCall(api => api.api.registry.findMetaError(dispatchError.asModule));
       const { docs, name, section, method } = decoded;
 
       console.log(
