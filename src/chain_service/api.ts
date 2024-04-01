@@ -50,7 +50,9 @@ class ApiManager {
 
     try {
         return await apiCall(apiInstance.api);
-    } catch (initialError) {
+    } catch (initialError: any) {
+      // Only retry if the error is regarding bad signature error
+      if (initialError.name === "RpcError" && initialError.message.includes("Transaction has a bad signature")){
         console.log(`Error encountered, attempting to refresh the api...`);
         try {
             apiInstance = await this.connectApi(this.config.getNetwork().wss); 
@@ -59,6 +61,10 @@ class ApiManager {
         } catch (retryError) {
             throw retryError;
         }
+
+      }else{
+        throw initialError;
+      }
     }
   }
 }

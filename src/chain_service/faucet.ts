@@ -8,6 +8,7 @@ import {
   DispatchError,
   NoFundsError,
   RateError,
+  RpcSinkError,
 } from "./faucetErrors.js";
 import { SlackNotifier } from "../slack_service/slack.js";
 
@@ -69,8 +70,7 @@ export default class Faucet {
         return reject(`Service Error: Invalid Mnemonic`);
       }
 
-      const nonce = await this.apiManager.executeApiCall(async (api) => api.rpc.system.accountNextIndex(sender.publicKey));
-
+      let nonce = await this.apiManager.executeApiCall(async (api) => api.rpc.system.accountNextIndex(sender.publicKey));
       const padding = new BN(10).pow(new BN(this.config.getDecimals()));
       const amount = new BN(this.config.getFundAmount()).mul(padding);
       const tx = await this.apiManager.executeApiCall(async (api) =>
@@ -196,10 +196,20 @@ export default class Faucet {
   }
 
   private checkLackOfFunds(error: any) {
-    if (error.name === "RpcError") {
-      if (error.code === 1010) {
+    if (error.name === "RpcError" && error.message.includes("Inability to pay some fees")){
         this.registerLackOfFundsEvent();
-      }
+    }else{
+        console.log(
+          "\x1b[31m%s\x1b[0m",
+          "🚫 Encountered some other error: ",
+          error?.toString(),
+          JSON.stringify(error),
+        );
+        let slackError = new RpcSinkError(
+          error.message,
+          this.config,
+        );
+        this.slackNotifier.pushError(slackError);
     }
   }
 

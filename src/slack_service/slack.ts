@@ -30,7 +30,7 @@ export class SlackNotifier {
     const errorKey = error.constructor.name;
     const lastHandled = this.errorTimestamps.get(errorKey) || 0;
     const timeSinceLastHandled = now - lastHandled;
-
+    
     //8 hour waiting time
     if (
       timeSinceLastHandled >=
