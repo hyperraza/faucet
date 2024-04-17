@@ -154,7 +154,7 @@ export default class Faucet {
 
   private async handleDispatchError(dispatchError: any) {
     if (dispatchError?.isModule) {
-      const decoded = await this.apiManager.executeApiCall(async (api) => api.registry.findMetaError(dispatchError.asModule));
+      const decoded =  (await this.apiManager.getApi()).api.registry.findMetaError(dispatchError.asModule);
       const { docs, name, section, method } = decoded;
 
       console.log(
