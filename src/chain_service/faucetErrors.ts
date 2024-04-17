@@ -67,6 +67,42 @@ export class NoFundsError extends FaucetError {
   }
 }
 
+export class RpcSinkError extends FaucetError {
+  config: Config;
+  constructor(message: string, config: Config) {
+    super(message);
+    this.config = config;
+    this.name = "Other RPC Error";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+
+  serializeForSlack(): SlackBlockkitMessage {
+    let context = this.appendContext(this.config.getNetwork());
+
+    let errorBlock: SlackBlock = {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Error Name*: ${this.name}`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*From Account*: ${this.config.getSenderPk()}`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Message*: ${this.message}`,
+        },
+      ],
+    };
+
+    return {
+      blocks: [...context, errorBlock],
+    };
+  }
+}
+
 export class DispatchError extends FaucetError {
   section: string;
   method: string;

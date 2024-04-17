@@ -33,8 +33,6 @@ class ApiManager {
   public async populateApis(): Promise<void> {
     const network: NetworkConfig = this.config.getNetwork();
 
-    // TODO add bogdan's fixes for disconect handling
-
     console.log(`Connecting to node ${network.wss}...`);
     this.apiInstanceDict["network"] = await this.connectApi(network.wss);
     console.log(`Connected to node ${network.wss}`);
@@ -45,6 +43,29 @@ class ApiManager {
       await this.populateApis();
     }
     return this.apiInstanceDict["network"];
+  }
+
+  public async executeApiCall(apiCall: (apiCall: ApiPromise) => Promise<any>): Promise<any> {
+    let apiInstance = await this.getApi();
+
+    try {
+        return await apiCall(apiInstance.api);
+    } catch (initialError: any) {
+      // Only retry if the error is regarding bad signature error
+      if (initialError.name === "RpcError" && initialError.message.includes("Transaction has a bad signature")){
+        console.log(`Error encountered, attempting to refresh the api...`);
+        try {
+            apiInstance = await this.connectApi(this.config.getNetwork().wss); 
+            this.apiInstanceDict["network"] = apiInstance; 
+            return await apiCall(apiInstance.api);
+        } catch (retryError) {
+            throw retryError;
+        }
+
+      }else{
+        throw initialError;
+      }
+    }
   }
 }
 

@@ -8,6 +8,7 @@ import {
   DispatchError,
   NoFundsError,
   RateError,
+  RpcSinkError,
 } from "./faucetErrors.js";
 import { SlackNotifier } from "../slack_service/slack.js";
 
@@ -27,13 +28,13 @@ export default class Faucet {
     this.slackNotifier = slackNotifier;
     this.fundMap = new Map<string, number[]>();
   }
-
+  
+  // Populate api's in the apiManager
   async init() {
     await this.apiManager.getApi();
   }
 
   async send(address: string) {
-    let api = await this.apiManager.getApi();
     return new Promise<string>(async (resolve, reject) => {
       // Waiting for crypto library to be ready
       await cryptoWaitReady();
@@ -69,15 +70,15 @@ export default class Faucet {
         return reject(`Service Error: Invalid Mnemonic`);
       }
 
-      const nonce = await api.api.rpc.system.accountNextIndex(sender.publicKey);
-
+      let nonce = await this.apiManager.executeApiCall(async (api) => api.rpc.system.accountNextIndex(sender.publicKey));
       const padding = new BN(10).pow(new BN(this.config.getDecimals()));
       const amount = new BN(this.config.getFundAmount()).mul(padding);
-      const tx = await api.api.tx.balances
+      const tx = await this.apiManager.executeApiCall(async (api) =>
+        api.tx.balances
         .transferKeepAlive(address, amount)
         .signAndSend(sender, { nonce }, (submissionResult: any) =>
           this.onSubmissionResultHandler(submissionResult, resolve, reject),
-        )
+        ))
         .catch((error: any) => {
           this.checkLackOfFunds(error);
           this.removeLatestFundEvent(address);
@@ -152,9 +153,8 @@ export default class Faucet {
   }
 
   private async handleDispatchError(dispatchError: any) {
-    let api = await this.apiManager.getApi();
     if (dispatchError?.isModule) {
-      const decoded = api.api.registry.findMetaError(dispatchError.asModule);
+      const decoded =  (await this.apiManager.getApi()).api.registry.findMetaError(dispatchError.asModule);
       const { docs, name, section, method } = decoded;
 
       console.log(
@@ -196,10 +196,20 @@ export default class Faucet {
   }
 
   private checkLackOfFunds(error: any) {
-    if (error.name === "RpcError") {
-      if (error.code === 1010) {
+    if (error.name === "RpcError" && error.message.includes("Inability to pay some fees")){
         this.registerLackOfFundsEvent();
-      }
+    }else{
+        console.log(
+          "\x1b[31m",
+          "🚫 Encountered some other error: ",
+          error?.toString(),
+          JSON.stringify(error),
+        );
+        let slackError = new RpcSinkError(
+          error.message,
+          this.config,
+        );
+        this.slackNotifier.pushError(slackError);
     }
   }
 
