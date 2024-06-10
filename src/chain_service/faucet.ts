@@ -2,7 +2,7 @@ import { Keyring } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types.js";
 import { checkAddress, cryptoWaitReady } from "@polkadot/util-crypto";
 import BN from "bn.js";
-import { ApiManager, API } from "./api.js";
+import { ApiManager } from "./api.js";
 import { Config } from "../config.js";
 import {
   AddressError,

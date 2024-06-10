@@ -67,7 +67,7 @@ export class Config {
   private validateNetworkSecret() {
     if (!this.getSecret()) {
       throw new Error(
-        `URI for network '${this.config.network.name}' is undefined`,
+        `Account secret for network '${this.config.network.name}' is undefined`,
       );
     }
   }

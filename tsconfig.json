@@ -6,7 +6,11 @@
     "moduleResolution": "Node",
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "./src" /* Specify the root folder within your source files. */,
+    "sourceMap": true /* Specify how TypeScript looks up a file from a given module specifier. */,
+    "outDir": "./dist" /* Specify an output folder for all emitted files. */,
+    "removeComments": true /* Disable emitting comments. */
   },
   "ts-node": {
     "experimentalSpecifierResolution": "node",
