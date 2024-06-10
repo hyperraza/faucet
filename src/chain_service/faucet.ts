@@ -1,4 +1,5 @@
-import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
+import { Keyring } from "@polkadot/api";
+import { KeyringPair } from "@polkadot/keyring/types.js";
 import { checkAddress, cryptoWaitReady } from "@polkadot/util-crypto";
 import BN from "bn.js";
 import { ApiManager, API } from "./api.js";
@@ -63,7 +64,7 @@ export default class Faucet {
       const keyring = new Keyring({ type: "sr25519" });
       keyring.setSS58Format(this.config.getaddressPrefix());
 
-      let sender;
+      let sender: KeyringPair;
       try {
         sender = keyring.addFromUri(this.config.getSecret());
       } catch {
