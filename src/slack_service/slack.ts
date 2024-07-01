@@ -14,8 +14,6 @@ export class SlackNotifier {
   constructor(config: Config) {
     this.config = config;
 
-    process.env.SLACK_WEB_HOOK_TOKEN = "abdc";
-
     if (process.env.SLACK_WEB_HOOK_TOKEN) {
       this.webhookUrl = `https://hooks.slack.com/services/${process.env.SLACK_WEB_HOOK_TOKEN}`;
     } else {
