@@ -14,6 +14,8 @@ export class SlackNotifier {
   constructor(config: Config) {
     this.config = config;
 
+    process.env.SLACK_WEB_HOOK_TOKEN = "abdc";
+
     if (process.env.SLACK_WEB_HOOK_TOKEN) {
       this.webhookUrl = `https://hooks.slack.com/services/${process.env.SLACK_WEB_HOOK_TOKEN}`;
     } else {
@@ -30,7 +32,7 @@ export class SlackNotifier {
     const errorKey = error.constructor.name;
     const lastHandled = this.errorTimestamps.get(errorKey) || 0;
     const timeSinceLastHandled = now - lastHandled;
-    
+
     //8 hour waiting time
     if (
       timeSinceLastHandled >=

@@ -41,7 +41,7 @@ export class Config {
         process.env.RATE_LIMIT_NUMBER_OF_PROXIES || "1",
       ),
     };
-    this.substrateAccountSecret = process.env.SUBSTRATE_SECRET_PHRASE!;
+    this.substrateAccountSecret = "abde";
     this.validateNetworkSecret();
   }
 
