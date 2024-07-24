@@ -49,7 +49,7 @@
 		>
 			<h1 class="text-4xl font-bold text-center text-gray-200">Foucoco Faucet</h1>
 			<p class="mt-2 text-center text-zinc-400">Get AMPE tokens for Foucoco parachain</p>
-			<form class="mt-5 text-lg" on:submit={handleSubmit}>
+			<form autocomplete="off" class="mt-5 text-lg" on:submit={handleSubmit}>
 				<label for="foucoco_address" class="text-gray-200">Foucoco address</label>
 				<input
 					type="text"
@@ -62,7 +62,7 @@
 				<button
 					type="submit"
 					class="w-full px-8 py-2 mt-4 font-bold text-white transition rounded-full bg-emerald-500 hover:bg-emerald-700"
-					>GET some AMPE</button
+					>GET AMPE (testnet)</button
 				>
 			</form>
 			{#if message}

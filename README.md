@@ -35,7 +35,7 @@ here defined as 8 hours.
 - `RATE_LIMIT_MAX_REQUESTS` - Max requests per rate limit window. Defaults to `60`.
 - `RATE_LIMIT_NUMBER_OF_PROXIES` - Allowed number of proxies in front of the service. Defaults to `1`.
 
-### Develop localy
+### Develop locally
 
 If you want to develop frontend
 

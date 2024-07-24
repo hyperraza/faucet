@@ -5,7 +5,6 @@ import { ApiManager } from "./chain_service/api.js";
 import Faucet from "./chain_service/faucet.js";
 import { AddressError, RateError } from "./chain_service/faucetErrors.js";
 import { SlackNotifier } from "./slack_service/slack.js";
-import { handler } from "../interface/build/handler.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +45,14 @@ app.get("/fund", async (req, res) => {
   return res.sendStatus(200);
 });
 
-app.use(handler);
+try {
+  const {handler} = await import("../interface/build/handler.js");
+
+  if (handler) {
+    app.use(handler);
+  }
+} catch (error) {
+  console.error('No handler found or failed to load handler');
+}
 
 app.listen(PORT, () => console.log("Server Running on Port " + PORT));
