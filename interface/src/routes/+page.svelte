@@ -13,7 +13,7 @@
 			class="relative z-50 flex flex-col items-center max-w-3xl px-20 py-10 bg-zinc-800 rounded-2xl"
 		>
 			<h1 class="text-4xl font-bold text-center text-gray-200">Foucoco Faucet</h1>
-			<p class="mt-2 text-center text-zinc-400">Get AMPE tokens for Foucoco parachain</p>
+			<p class="mt-2 text-center text-zinc-400">Get AMPE tokens for the Foucoco parachain</p>
 			<FaucetForm />
 		</article>
 	</section>
