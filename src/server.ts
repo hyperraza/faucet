@@ -29,11 +29,8 @@ app.get("/fund", async (req, res) => {
     await faucet.send(String(to));
   } catch (error) {
     if (error instanceof AddressError) {
-      return res
-        .status(400)
-        .send(
-          `Error sending to address ${error.address}: <br /> ${error.message}`,
-        );
+      return res.status(400).send(`Error sending to address ${error.address}:
+           ${error.message}`);
     } else if (error instanceof RateError) {
       return res
         .status(400)
@@ -47,5 +44,16 @@ app.get("/fund", async (req, res) => {
 
   return res.sendStatus(200);
 });
+
+try {
+  // @ts-ignore
+  const {handler} = await import("../interface/build/handler.js") as any;
+
+  if (handler) {
+    app.use(handler);
+  }
+} catch (error) {
+  console.error('No handler found or failed to load handler');
+}
 
 app.listen(PORT, () => console.log("Server Running on Port " + PORT));

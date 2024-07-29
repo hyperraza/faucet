@@ -1,5 +1,4 @@
 import { Keyring } from "@polkadot/api";
-import { KeyringPair } from "@polkadot/keyring/types.js";
 import { checkAddress, cryptoWaitReady } from "@polkadot/util-crypto";
 import BN from "bn.js";
 import { ApiManager } from "./api.js";
@@ -29,7 +28,7 @@ export default class Faucet {
     this.slackNotifier = slackNotifier;
     this.fundMap = new Map<string, number[]>();
   }
-  
+
   // Populate api's in the apiManager
   async init() {
     await this.apiManager.getApi();
@@ -64,7 +63,7 @@ export default class Faucet {
       const keyring = new Keyring({ type: "sr25519" });
       keyring.setSS58Format(this.config.getaddressPrefix());
 
-      let sender: KeyringPair;
+      let sender;
       try {
         sender = keyring.addFromUri(this.config.getSecret());
       } catch {
