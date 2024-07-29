@@ -46,7 +46,8 @@ app.get("/fund", async (req, res) => {
 });
 
 try {
-  const {handler} = await import("../interface/build/handler.js");
+  // @ts-ignore
+  const {handler} = await import("../interface/build/handler.js") as any;
 
   if (handler) {
     app.use(handler);
