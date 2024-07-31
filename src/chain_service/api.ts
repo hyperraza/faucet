@@ -45,24 +45,28 @@ class ApiManager {
     return this.apiInstanceDict["network"];
   }
 
-  public async executeApiCall(apiCall: (apiCall: ApiPromise) => Promise<any>): Promise<any> {
+  public async executeApiCall(
+    apiCall: (apiCall: ApiPromise) => Promise<any>,
+  ): Promise<any> {
     let apiInstance = await this.getApi();
 
     try {
-        return await apiCall(apiInstance.api);
+      return await apiCall(apiInstance.api);
     } catch (initialError: any) {
       // Only retry if the error is regarding bad signature error
-      if (initialError.name === "RpcError" && initialError.message.includes("Transaction has a bad signature")){
+      if (
+        initialError.name === "RpcError" &&
+        initialError.message.includes("Transaction has a bad signature")
+      ) {
         console.log(`Error encountered, attempting to refresh the api...`);
         try {
-            apiInstance = await this.connectApi(this.config.getNetwork().wss); 
-            this.apiInstanceDict["network"] = apiInstance; 
-            return await apiCall(apiInstance.api);
+          apiInstance = await this.connectApi(this.config.getNetwork().wss);
+          this.apiInstanceDict["network"] = apiInstance;
+          return await apiCall(apiInstance.api);
         } catch (retryError) {
-            throw retryError;
+          throw retryError;
         }
-
-      }else{
+      } else {
         throw initialError;
       }
     }
