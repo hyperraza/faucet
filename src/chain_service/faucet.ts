@@ -63,27 +63,33 @@ export default class Faucet {
       const keyring = new Keyring({ type: "sr25519" });
       keyring.setSS58Format(this.config.getaddressPrefix());
 
-      let sender;
       try {
-        sender = keyring.addFromUri(this.config.getSecret());
-      } catch {
-        return reject(`Service Error: Invalid Mnemonic`);
+        const sender = keyring.addFromUri(this.config.getSecret());
+        let nonce = await this.apiManager.executeApiCall(async (api) =>
+          api.rpc.system.accountNextIndex(sender.publicKey),
+        );
+        const padding = new BN(10).pow(new BN(this.config.getDecimals()));
+        const amount = new BN(this.config.getFundAmount()).mul(padding);
+        const tx = await this.apiManager
+          .executeApiCall(async (api) =>
+            api.tx.balances
+              .transferKeepAlive(address, amount)
+              .signAndSend(sender, { nonce }, (submissionResult: any) =>
+                this.onSubmissionResultHandler(
+                  submissionResult,
+                  resolve,
+                  reject,
+                ),
+              ),
+          )
+          .catch((error: any) => {
+            this.checkLackOfFunds(error);
+            this.removeLatestFundEvent(address);
+            reject();
+          });
+      } catch (error) {
+        return reject(`Service Error: ${error}`);
       }
-
-      let nonce = await this.apiManager.executeApiCall(async (api) => api.rpc.system.accountNextIndex(sender.publicKey));
-      const padding = new BN(10).pow(new BN(this.config.getDecimals()));
-      const amount = new BN(this.config.getFundAmount()).mul(padding);
-      const tx = await this.apiManager.executeApiCall(async (api) =>
-        api.tx.balances
-        .transferKeepAlive(address, amount)
-        .signAndSend(sender, { nonce }, (submissionResult: any) =>
-          this.onSubmissionResultHandler(submissionResult, resolve, reject),
-        ))
-        .catch((error: any) => {
-          this.checkLackOfFunds(error);
-          this.removeLatestFundEvent(address);
-          reject();
-        });
     });
   }
 
@@ -154,7 +160,9 @@ export default class Faucet {
 
   private async handleDispatchError(dispatchError: any) {
     if (dispatchError?.isModule) {
-      const decoded =  (await this.apiManager.getApi()).api.registry.findMetaError(dispatchError.asModule);
+      const decoded = (
+        await this.apiManager.getApi()
+      ).api.registry.findMetaError(dispatchError.asModule);
       const { docs, name, section, method } = decoded;
 
       console.log(
@@ -196,20 +204,20 @@ export default class Faucet {
   }
 
   private checkLackOfFunds(error: any) {
-    if (error.name === "RpcError" && error.message.includes("Inability to pay some fees")){
-        this.registerLackOfFundsEvent();
-    }else{
-        console.log(
-          "\x1b[31m",
-          "🚫 Encountered some other error: ",
-          error?.toString(),
-          JSON.stringify(error),
-        );
-        let slackError = new RpcSinkError(
-          error.message,
-          this.config,
-        );
-        this.slackNotifier.pushError(slackError);
+    if (
+      error.name === "RpcError" &&
+      error.message.includes("Inability to pay some fees")
+    ) {
+      this.registerLackOfFundsEvent();
+    } else {
+      console.log(
+        "\x1b[31m",
+        "🚫 Encountered some other error: ",
+        error?.toString(),
+        JSON.stringify(error),
+      );
+      let slackError = new RpcSinkError(error.message, this.config);
+      this.slackNotifier.pushError(slackError);
     }
   }
 

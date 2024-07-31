@@ -46,14 +46,21 @@ app.get("/fund", async (req, res) => {
 });
 
 try {
-  // @ts-ignore
-  const {handler} = await import("../interface/build/handler.js") as any;
+  let handler;
+
+  if (process.env.NODE_ENV === "production") {
+    // @ts-ignore
+    handler = (await import("../../interface/build/handler.js")).handler as any;
+  } else {
+    // @ts-ignore
+    handler = (await import("../interface/build/handler.js")).handler as any;
+  }
 
   if (handler) {
     app.use(handler);
   }
 } catch (error) {
-  console.error('No handler found or failed to load handler');
+  console.error("No handler found or failed to load handler");
 }
 
 app.listen(PORT, () => console.log("Server Running on Port " + PORT));
